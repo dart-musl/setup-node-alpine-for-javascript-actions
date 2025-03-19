@@ -1,0 +1,13 @@
+name: Setup Node.js for JavaScript Actions
+description: Setup Node.js environment for JavaScript Actions in Alpine containers
+runs:
+  using: composite
+  steps:
+    - if: runner.os == 'Linux'
+      run: |
+        if test -d /__e && grep -q '^ID=alpine$' /etc/os-release; then
+          apk add --no-cache -- docker-cli libstdc++
+          find /__e -type f -executable -name 'node' -not -path '*_alpine/*' -print0 | xargs -0 -n 1 -- sh -xc 'docker run --rm --volume "$1" "docker.io/library/node:$(docker run --rm --volume "$1" docker.io/library/debian:stable-slim "$2" -e "console.log(process.versions.node)")-alpine" -e "fs.copyFileSync(process.execPath, process.argv[1])" -- "$2"' -- "$(docker inspect "$(hostname)" --format '{{ range.Mounts }}{{ if eq .Destination "/__e" }}{{ .Source }}:{{ .Destination }}{{ end }}{{ end }}')"
+          sed -i -e 's/^ID=alpine$/ID=linux/' /etc/os-release
+        fi
+      shell: sh
