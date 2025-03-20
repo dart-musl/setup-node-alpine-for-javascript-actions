@@ -1,0 +1,26 @@
+name: build
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    container:
+      image: docker.io/library/alpine
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+
+    steps:
+      - run: |
+          wget -O- --header "Authorization: Bearer ${{ github.token }}" ${{ github.api_url }}/repos/${{ github.repository }}/tarball/${{ github.sha }} | tar -xz --strip-components 1
+      - uses: ./
+      - uses: actions/checkout@v4
