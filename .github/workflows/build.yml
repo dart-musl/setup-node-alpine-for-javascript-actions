@@ -23,4 +23,4 @@ jobs:
       - run: |
           wget -O- --header "Authorization: Bearer ${{ github.token }}" ${{ github.api_url }}/repos/${{ github.repository }}/tarball/${{ github.sha }} | tar -xz --strip-components 1
       - uses: ./
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
