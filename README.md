@@ -4,7 +4,7 @@
 
 This action fixes the following error for GitHub Actions users:
 
-- JavaScript Actions in Alpine containers are only supported on x64 Linux runners.
+> JavaScript Actions in Alpine containers are only supported on x64 Linux runners.
 
 ## Usage
 
