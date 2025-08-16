@@ -8,7 +8,7 @@ runs:
         if test -d /__e && grep -q '^ID=alpine$' /etc/os-release; then
           ROOT=$(mktemp -d)
           apk add --root "$ROOT" --repositories-file /etc/apk/repositories --allow-untrusted --no-cache --no-scripts --initdb -- docker-cli
-          "$ROOT/usr/bin/docker" run --rm --user 0:0 --volume /:/hostfs --entrypoint /usr/sbin/chroot "$("$ROOT/usr/bin/docker" inspect "$(hostname)" --format "{{ .Image }}")" /hostfs /bin/bash -xc \
+          "$ROOT/usr/bin/docker" run --rm --net host --user 0:0 --volume /:/hostfs --entrypoint /usr/sbin/chroot "$("$ROOT/usr/bin/docker" inspect "$(hostname)" --format "{{ .Image }}")" /hostfs /bin/bash -xc \
             'exec sudo -u "$(stat -c "%U" -- "$7")" -- /bin/bash -xc "$@"' -- \
             'find "$5" -type f -executable -name node -not -path "*_alpine/*" -print0 | exec xargs -0 -n 1 -- /bin/bash -xc "$@"' -- \
             'exec docker run --rm --volume /:/hostfs --entrypoint /bin/sh "docker.io/library/node:$("$4" -e "console.log(process.versions.node)")-alpine" -xc "$@"' -- \
