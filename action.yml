@@ -6,11 +6,15 @@ runs:
     - if: runner.os == 'Linux'
       run: |
         if test -d /__e && grep -q '^ID=alpine$' /etc/os-release; then
-          apk add --no-cache -- docker-cli libstdc++
-          docker run --rm --interactive --user 0:0 --volume /:/hostfs --entrypoint /usr/sbin/chroot "$(docker inspect "$(hostname)" --format "{{ .Image }}")" /hostfs /bin/bash -eo pipefail -xs "$(docker inspect "$(hostname)" --format '{{ range.Mounts }}{{ if eq .Destination "/__e" }}{{ .Source }}{{ end }}{{ end }}')" <<'EOF'
-        export DOCKER_CONFIG="$(readlink -f "$1/../../../.docker")"
-        find "$1" -type f -executable -name 'node' -not -path '*_alpine/*' -print0 | xargs -0 -n 1 -- /bin/bash -xc 'docker run --rm --volume /:/hostfs "docker.io/library/node:$("$1" -e "console.log(process.versions.node)")-alpine" -e "fs.copyFileSync(process.execPath, process.argv[1])" -- "/hostfs$1"' --
-        EOF
-          sed -i -e 's/^ID=alpine$/ID=linux/' /etc/os-release
+          ROOT=$(mktemp -d)
+          apk add --root "$ROOT" --repositories-file /etc/apk/repositories --allow-untrusted --no-cache --no-scripts --initdb -- docker-cli
+          "$ROOT/usr/bin/docker" run --rm --user 0:0 --volume /:/hostfs --entrypoint /usr/sbin/chroot "$("$ROOT/usr/bin/docker" inspect "$(hostname)" --format "{{ .Image }}")" /hostfs /bin/bash -xc \
+            'exec sudo -u "$(stat -c "%U" -- "$7")" -- /bin/bash -xc "$@"' -- \
+            'find "$5" -type f -executable -name node -not -path "*_alpine/*" -print0 | exec xargs -0 -n 1 -- /bin/bash -xc "$@"' -- \
+            'exec docker run --rm --volume /:/hostfs --entrypoint /bin/sh "docker.io/library/node:$("$4" -e "console.log(process.versions.node)")-alpine" -xc "$@"' -- \
+            'apk add --no-cache -- patchelf && cp "$(which node)" "/hostfs$2" && apk info --quiet --contents -- libgcc libstdc++ | xargs -- tar -cC / -T- | tar -xvC "$(dirname "$(dirname "/hostfs$2")")" --strip-components 1 && patchelf --set-rpath \$ORIGIN/../lib "/hostfs$2" && ldd "/hostfs$2"' -- \
+            "$("$ROOT/usr/bin/docker" inspect "$(hostname)" --format '{{ range.Mounts }}{{ if eq .Destination "/__e" }}{{ .Source }}{{ end }}{{ end }}')"
+          rm -rf -- "$ROOT"
+          sed -i -e 's/^ID=alpine$/ID=linux/' -- /etc/os-release
         fi
       shell: sh
