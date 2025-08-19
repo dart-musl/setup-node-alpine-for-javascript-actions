@@ -3,9 +3,9 @@ description: Setup Node.js environment for JavaScript Actions in Alpine containe
 runs:
   using: composite
   steps:
-    - if: runner.os == 'Linux'
+    - if: runner.os == 'Linux' && job.container.id != null
       run: |
-        if test -n '${{ job.container.id }}' && grep -q '^ID=alpine$' /etc/os-release; then
+        if grep -q '^ID=alpine$' /etc/os-release; then
           ROOT=$(mktemp -d)
           apk add --root "$ROOT" --repositories-file /etc/apk/repositories --allow-untrusted --no-cache --no-scripts --initdb -- docker-cli
           "$ROOT/usr/bin/docker" run --rm --net host --user 0:0 --volume /:/hostfs --entrypoint /usr/sbin/chroot "$("$ROOT/usr/bin/docker" inspect '${{ job.container.id }}' --format "{{ .Image }}")" /hostfs /bin/bash -xc \
