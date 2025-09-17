@@ -6,7 +6,7 @@ runs:
     - if: runner.os == 'Linux' && job.container.id != null
       run: |
         if grep -q '^ID=alpine$' /etc/os-release; then
-          ROOT=$(mktemp -d)
+          ROOT=$(TMPDIR="$RUNNER_TEMP" mktemp -d)
           apk add --root "$ROOT" --repositories-file /etc/apk/repositories --allow-untrusted --no-cache --no-scripts --initdb -- docker-cli
           "$ROOT/usr/bin/docker" run --rm --net host --user 0:0 --volume /:/hostfs --entrypoint /usr/sbin/chroot "$("$ROOT/usr/bin/docker" inspect '${{ job.container.id }}' --format "{{ .Image }}")" /hostfs /bin/bash -xc \
             'exec sudo -u "$(stat -c "%U" -- "$7")" -- /bin/bash -xc "$@"' -- \
