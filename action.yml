@@ -10,7 +10,7 @@ runs:
           apk add --root "$ROOT" --repositories-file /etc/apk/repositories --allow-untrusted --no-cache --no-scripts --initdb -- docker-cli
           "$ROOT/usr/bin/docker" run --rm --net host --user 0:0 --volume /:/hostfs --entrypoint /usr/sbin/chroot "$("$ROOT/usr/bin/docker" inspect '${{ job.container.id }}' --format "{{ .Image }}")" /hostfs /bin/bash -xc \
             'exec sudo -u "$(stat -c "%U" -- "$7")" -- /bin/bash -xc "$@"' -- \
-            'find "$5" -type f -executable -name node -not -path "*_alpine/*" -print0 | exec xargs -0 -n 1 -- /bin/bash -xc "$@"' -- \
+            'find "$(readlink -f "$5")" -type f -executable -name node -not -path "*_alpine/*" -print0 | exec xargs -0 -n 1 -- /bin/bash -xc "$@"' -- \
             'exec docker run --rm --volume /:/hostfs --entrypoint /bin/sh "docker.io/library/node:$("$4" -e "console.log(process.versions.node)")-alpine" -xc "$@"' -- \
             'apk add --no-cache -- patchelf && apk info --quiet --contents -- libgcc libstdc++ | xargs -- tar -cC / -T- | tar -xvC "$(dirname "/hostfs$2")/../lib" --strip-components 2 && cp "$(which node)" "/hostfs$2" && patchelf --set-rpath \$ORIGIN/../lib "/hostfs$2" && ldd "/hostfs$2"' -- \
             "$("$ROOT/usr/bin/docker" inspect '${{ job.container.id }}' --format '{{ range.Mounts }}{{ if eq .Destination "/__e" }}{{ .Source }}{{ end }}{{ end }}')"
