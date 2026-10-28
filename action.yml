@@ -1,5 +1,8 @@
 name: Setup Node.js for JavaScript Actions
 description: Setup Node.js environment for JavaScript Actions in Alpine containers
+branding:
+  icon: play
+  color: blue
 runs:
   using: composite
   steps:
