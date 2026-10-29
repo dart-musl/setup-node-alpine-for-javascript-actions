@@ -8,13 +8,13 @@ This action fixes the following error for GitHub Actions users:
 
 ## Usage
 
-> [!CAUTION]  
-> This action will change `ID=alpine` to `ID=linux` in `/etc/os-release`, which may break os detection for certain applications.   
+> [!CAUTION]
+> This action will change `ID=alpine` to `ID=linux` in `/etc/os-release`, which may break os detection for certain applications.
 
 ``` yaml
 jobs:
   build:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     container:
       image: alpine
     steps:
